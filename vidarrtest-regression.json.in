@@ -1,0 +1,236 @@
+[
+    {
+        "arguments": {
+            "ultimaMergeQC.inputCrams": [
+                {
+                    "cram": {
+                        "contents": {
+                            "configuration": "/.mounts/labs/gsi/testdata/ultimaMergeQC/test_data/test_lane1.cram",
+                            "externalIds": [
+                                {
+                                    "id": "TEST",
+                                    "provider": "TEST"
+                                }
+                            ]
+                        },
+                        "type": "EXTERNAL"
+                    },
+                    "crai": {
+                        "contents": {
+                            "configuration": "/.mounts/labs/gsi/testdata/ultimaMergeQC/test_data/test_lane1.cram.crai",
+                            "externalIds": [
+                                {
+                                    "id": "TEST",
+                                    "provider": "TEST"
+                                }
+                            ]
+                        },
+                        "type": "EXTERNAL"
+                    }
+                },
+                {
+                    "cram": {
+                        "contents": {
+                            "configuration": "/.mounts/labs/gsi/testdata/ultimaMergeQC/test_data/test_lane2.cram",
+                            "externalIds": [
+                                {
+                                    "id": "TEST",
+                                    "provider": "TEST"
+                                }
+                            ]
+                        },
+                        "type": "EXTERNAL"
+                    },
+                    "crai": {
+                        "contents": {
+                            "configuration": "/.mounts/labs/gsi/testdata/ultimaMergeQC/test_data/test_lane2.cram.crai",
+                            "externalIds": [
+                                {
+                                    "id": "TEST",
+                                    "provider": "TEST"
+                                }
+                            ]
+                        },
+                        "type": "EXTERNAL"
+                    }
+                }
+            ],
+            "ultimaMergeQC.outputFileNamePrefix": "test",
+            "ultimaMergeQC.reference": "hg38",
+            "ultimaMergeQC.ugAdapter": null,
+            "ultimaMergeQC.intervalsToParallelizeByString": null,
+            "ultimaMergeQC.maxDuplication": null,
+            "ultimaMergeQC.maxChimerism": null,
+            "ultimaMergeQC.prepareIntervals.lineSeparator": null,
+            "ultimaMergeQC.prepareIntervals.recordSeparator": null,
+            "ultimaMergeQC.prepareIntervals.jobMemory": null,
+            "ultimaMergeQC.prepareIntervals.cores": null,
+            "ultimaMergeQC.prepareIntervals.timeout": null,
+            "ultimaMergeQC.prepareIntervals.modules": null,
+            "ultimaMergeQC.subsetByInterval.jobMemory": null,
+            "ultimaMergeQC.subsetByInterval.cores": null,
+            "ultimaMergeQC.subsetByInterval.timeout": null,
+            "ultimaMergeQC.subsetByInterval.modules": null,
+            "ultimaMergeQC.markDuplicates.removeDuplicates": null,
+            "ultimaMergeQC.markDuplicates.flowMode": null,
+            "ultimaMergeQC.markDuplicates.flowQIsKnownEnd": null,
+            "ultimaMergeQC.markDuplicates.flowUseUnpairedClippedEnd": null,
+            "ultimaMergeQC.markDuplicates.flowUseEndInUnpairedReads": null,
+            "ultimaMergeQC.markDuplicates.flowUnpairedStartUncertainty": null,
+            "ultimaMergeQC.markDuplicates.flowUnpairedEndUncertainty": null,
+            "ultimaMergeQC.markDuplicates.markDuplicatesAdditionalParams": null,
+            "ultimaMergeQC.markDuplicates.jobMemory": null,
+            "ultimaMergeQC.markDuplicates.minMemory": null,
+            "ultimaMergeQC.markDuplicates.overhead": null,
+            "ultimaMergeQC.markDuplicates.cores": null,
+            "ultimaMergeQC.markDuplicates.timeout": null,
+            "ultimaMergeQC.markDuplicates.modules": null,
+            "ultimaMergeQC.mergeCrams.jobMemory": null,
+            "ultimaMergeQC.mergeCrams.cores": null,
+            "ultimaMergeQC.mergeCrams.timeout": null,
+            "ultimaMergeQC.mergeCrams.modules": null,
+            "ultimaMergeQC.collectDuplicateMetrics.jobMemory": null,
+            "ultimaMergeQC.collectDuplicateMetrics.overhead": null,
+            "ultimaMergeQC.collectDuplicateMetrics.cores": null,
+            "ultimaMergeQC.collectDuplicateMetrics.timeout": null,
+            "ultimaMergeQC.collectDuplicateMetrics.modules": null,
+            "ultimaMergeQC.collectWgsMetrics.readLength": null,
+            "ultimaMergeQC.collectWgsMetrics.jobMemory": null,
+            "ultimaMergeQC.collectWgsMetrics.overhead": null,
+            "ultimaMergeQC.collectWgsMetrics.cores": null,
+            "ultimaMergeQC.collectWgsMetrics.timeout": null,
+            "ultimaMergeQC.collectWgsMetrics.modules": null,
+            "ultimaMergeQC.collectRawWgsMetrics.readLength": null,
+            "ultimaMergeQC.collectRawWgsMetrics.jobMemory": null,
+            "ultimaMergeQC.collectRawWgsMetrics.overhead": null,
+            "ultimaMergeQC.collectRawWgsMetrics.cores": null,
+            "ultimaMergeQC.collectRawWgsMetrics.timeout": null,
+            "ultimaMergeQC.collectRawWgsMetrics.modules": null,
+            "ultimaMergeQC.collectAggregationMetrics.jobMemory": null,
+            "ultimaMergeQC.collectAggregationMetrics.overhead": null,
+            "ultimaMergeQC.collectAggregationMetrics.cores": null,
+            "ultimaMergeQC.collectAggregationMetrics.timeout": null,
+            "ultimaMergeQC.collectAggregationMetrics.modules": null,
+            "ultimaMergeQC.collectReadLengthDistribution.jobMemory": null,
+            "ultimaMergeQC.collectReadLengthDistribution.cores": null,
+            "ultimaMergeQC.collectReadLengthDistribution.timeout": null,
+            "ultimaMergeQC.collectReadLengthDistribution.modules": null,
+            "ultimaMergeQC.checkPreValidation.jobMemory": null,
+            "ultimaMergeQC.checkPreValidation.cores": null,
+            "ultimaMergeQC.checkPreValidation.timeout": null,
+            "ultimaMergeQC.checkPreValidation.modules": null
+        },
+        "description": "ultimaMergeQC single-sample merge + duplicate-mark + QC test",
+        "engineArguments": {
+            "write_to_cache": false,
+            "read_from_cache": false
+        },
+        "id": "ultimaMergeQC_test",
+        "metadata": {
+            "ultimaMergeQC.mergedCram": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_ultimaMergeQC_test_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "ultimaMergeQC.mergedCramIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_ultimaMergeQC_test_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "ultimaMergeQC.duplicateMetrics": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_ultimaMergeQC_test_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "ultimaMergeQC.perIntervalDuplicateMetrics": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_ultimaMergeQC_test_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "ultimaMergeQC.wgsMetrics": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_ultimaMergeQC_test_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "ultimaMergeQC.rawWgsMetrics": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_ultimaMergeQC_test_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "ultimaMergeQC.alignmentSummaryMetrics": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_ultimaMergeQC_test_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "ultimaMergeQC.gcBiasSummaryMetrics": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_ultimaMergeQC_test_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "ultimaMergeQC.gcBiasDetailMetrics": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_ultimaMergeQC_test_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "ultimaMergeQC.qualityDistributionMetrics": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_ultimaMergeQC_test_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "ultimaMergeQC.readLengthDistribution": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_ultimaMergeQC_test_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "ultimaMergeQC.samtoolsStats": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_ultimaMergeQC_test_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            }
+        },
+        "validators": [
+            {
+                "metrics_calculate": "@CHECKOUT@/tests/calculate.sh",
+                "metrics_compare": "@CHECKOUT@/tests/compare.sh",
+                "output_metrics": "/.mounts/labs/gsi/testdata/ultimaMergeQC/output_metrics/ultimaMergeQC_test.metrics",
+                "type": "script"
+            }
+        ]
+    }
+]

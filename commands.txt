@@ -68,7 +68,7 @@ This section lists command(s) run by ultimaMergeQC workflow
     set -euo pipefail
     # Ultima-recommended flow-based (single-end) duplicate marking.
     gatk --java-options "-Xmx~{allocatedMemory - overhead}G" MarkDuplicates \
-      ~{sep=" " prefix("--INPUT=", inputCrams)} \
+      --INPUT="~{inputCram}" \
       --OUTPUT="~{outputFileNamePrefix}.cram" \
       --METRICS_FILE="~{outputFileNamePrefix}.metrics" \
       --REFERENCE_SEQUENCE="~{refFasta}" \

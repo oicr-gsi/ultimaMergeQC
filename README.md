@@ -50,6 +50,10 @@ Parameter|Value|Default|Description
 `subsetByInterval.cores`|Int|4|Threads for samtools (-@).
 `subsetByInterval.timeout`|Int|24|Hours before task timeout.
 `subsetByInterval.modules`|String|"samtools/1.16.1"|Tool environment modules to load (samtools).
+`mergeLanes.jobMemory`|Int|16|Memory (GB) allocated to this job.
+`mergeLanes.cores`|Int|8|Threads for samtools (-@).
+`mergeLanes.timeout`|Int|24|Hours before task timeout.
+`mergeLanes.modules`|String|"samtools/1.16.1"|Tool environment modules to load (samtools).
 `markDuplicates.removeDuplicates`|Boolean|false|If true, drop duplicates instead of flagging them.
 `markDuplicates.flowMode`|Boolean|true|Ultima flow-based duplicate marking (single-end flow reads). Should stay true for Ultima data.
 `markDuplicates.flowQIsKnownEnd`|Boolean|true|FLOW_Q_IS_KNOWN_END: treat a soft-clipped read end terminating in a quality of 0 as a known end.
@@ -191,7 +195,7 @@ This section lists command(s) run by ultimaMergeQC workflow
     set -euo pipefail
     # Ultima-recommended flow-based (single-end) duplicate marking.
     gatk --java-options "-Xmx~{allocatedMemory - overhead}G" MarkDuplicates \
-      ~{sep=" " prefix("--INPUT=", inputCrams)} \
+      --INPUT="~{inputCram}" \
       --OUTPUT="~{outputFileNamePrefix}.cram" \
       --METRICS_FILE="~{outputFileNamePrefix}.metrics" \
       --REFERENCE_SEQUENCE="~{refFasta}" \

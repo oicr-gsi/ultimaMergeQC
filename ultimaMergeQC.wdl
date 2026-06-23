@@ -88,11 +88,23 @@ workflow ultimaMergeQC {
       }
     }
 
-    # Step 2: merge lanes (implicitly, via MarkDuplicates' multiple --INPUT, benefit is avoid disk I/O) 
-    # mark duplicates within the partition. RAM scales with the partition coefficient.
+    # Step 2: merge the per-lane subsets into one partition CRAM. Skipped for a single
+    # lane (nothing to merge) - that lane's subset is used directly.
+    if (length(inputCrams) > 1) {
+      call mergeCrams as mergeLanes {
+        input:
+          inputCrams = subsetByInterval.subsetCram,
+          refFasta = rr.refFasta,
+          referenceModule = rr.genomeModule,
+          outputFileNamePrefix = "~{outputFileNamePrefix}.~{interval}.merged"
+      }
+    }
+    File partitionCram = select_first([mergeLanes.mergedCram, subsetByInterval.subsetCram[0]])
+
+    # Step 3: mark duplicates within the partition. RAM scales with the partition coefficient.
     call markDuplicates {
       input:
-        inputCrams = subsetByInterval.subsetCram,
+        inputCram = partitionCram,
         refFasta = rr.refFasta,
         referenceModule = rr.genomeModule,
         outputFileNamePrefix = "~{outputFileNamePrefix}.~{interval}.dupmarked",
@@ -100,7 +112,7 @@ workflow ultimaMergeQC {
     }
   }
 
-  # Step 3: merge the duplicate-marked partitions into one sample CRAM.
+  # Step 4: merge the duplicate-marked partitions into one sample CRAM.
   call mergeCrams {
     input:
       inputCrams = markDuplicates.dedupCram,
@@ -363,7 +375,7 @@ task subsetByInterval {
 # duplicates within one partition. RAM scales with the partition coefficient.
 task markDuplicates {
   input {
-    Array[File] inputCrams
+    File inputCram
     String refFasta
     String referenceModule
     String outputFileNamePrefix
@@ -385,7 +397,7 @@ task markDuplicates {
   }
 
   parameter_meta {
-    inputCrams: "Per-lane subset CRAMs for this partition; merged on read and duplicate-marked together."
+    inputCram: "Merged partition CRAM (all lanes for this partition) to duplicate-mark."
     refFasta: "Reference FASTA path."
     referenceModule: "Module that provides the reference files."
     outputFileNamePrefix: "Prefix for the duplicate-marked CRAM and metrics."
@@ -412,19 +424,19 @@ task markDuplicates {
     set -euo pipefail
     # Ultima-recommended flow-based (single-end) duplicate marking.
     gatk --java-options "-Xmx~{allocatedMemory - overhead}G" MarkDuplicates \
-      ~{sep=" " prefix("--INPUT=", inputCrams)} \
-      --OUTPUT="~{outputFileNamePrefix}.cram" \
-      --METRICS_FILE="~{outputFileNamePrefix}.metrics" \
-      --REFERENCE_SEQUENCE="~{refFasta}" \
+      --INPUT "~{inputCram}" \
+      --OUTPUT "~{outputFileNamePrefix}.cram" \
+      --METRICS_FILE "~{outputFileNamePrefix}.metrics" \
+      --REFERENCE_SEQUENCE ~{refFasta} \
       --FLOW_MODE ~{flowMode} \
       --FLOW_Q_IS_KNOWN_END ~{flowQIsKnownEnd} \
       --FLOW_USE_UNPAIRED_CLIPPED_END ~{flowUseUnpairedClippedEnd} \
       --FLOW_USE_END_IN_UNPAIRED_READS ~{flowUseEndInUnpairedReads} \
       --FLOW_UNPAIRED_START_UNCERTAINTY ~{flowUnpairedStartUncertainty} \
       --FLOW_UNPAIRED_END_UNCERTAINTY ~{flowUnpairedEndUncertainty} \
-      --REMOVE_DUPLICATES=~{removeDuplicates} \
-      --CREATE_INDEX=false \
-      --VALIDATION_STRINGENCY=SILENT \
+      --REMOVE_DUPLICATES ~{removeDuplicates} \
+      --CREATE_INDEX false \
+      --VALIDATION_STRINGENCY SILENT \
       ~{markDuplicatesAdditionalParams}
   >>>
 

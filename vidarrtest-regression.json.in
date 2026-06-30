@@ -114,11 +114,7 @@
             "ultimaMergeQC.collectReadLengthDistribution.jobMemory": null,
             "ultimaMergeQC.collectReadLengthDistribution.cores": null,
             "ultimaMergeQC.collectReadLengthDistribution.timeout": null,
-            "ultimaMergeQC.collectReadLengthDistribution.modules": null,
-            "ultimaMergeQC.checkPreValidation.jobMemory": null,
-            "ultimaMergeQC.checkPreValidation.cores": null,
-            "ultimaMergeQC.checkPreValidation.timeout": null,
-            "ultimaMergeQC.checkPreValidation.modules": null
+            "ultimaMergeQC.collectReadLengthDistribution.modules": null
         },
         "description": "ultimaMergeQC single-sample merge + duplicate-mark + QC test",
         "engineArguments": {
@@ -144,14 +140,6 @@
                 "type": "ALL"
             },
             "ultimaMergeQC.duplicateMetrics": {
-                "contents": [
-                    {
-                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_ultimaMergeQC_test_@JENKINSID@"
-                    }
-                ],
-                "type": "ALL"
-            },
-            "ultimaMergeQC.perIntervalDuplicateMetrics": {
                 "contents": [
                     {
                         "outputDirectory": "@SCRATCH@/@DATE@_Workflow_ultimaMergeQC_test_@JENKINSID@"

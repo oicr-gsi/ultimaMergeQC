@@ -50,6 +50,10 @@ Parameter|Value|Default|Description
 `subsetByInterval.cores`|Int|4|Threads for samtools (-@).
 `subsetByInterval.timeout`|Int|24|Hours before task timeout.
 `subsetByInterval.modules`|String|"samtools/1.16.1"|Tool environment modules to load (samtools).
+`mergeLanes.jobMemory`|Int|16|Memory (GB) allocated to this job.
+`mergeLanes.cores`|Int|8|Threads for samtools (-@).
+`mergeLanes.timeout`|Int|24|Hours before task timeout.
+`mergeLanes.modules`|String|"samtools/1.16.1"|Tool environment modules to load (samtools).
 `markDuplicates.removeDuplicates`|Boolean|false|If true, drop duplicates instead of flagging them.
 `markDuplicates.flowMode`|Boolean|true|Ultima flow-based duplicate marking (single-end flow reads). Should stay true for Ultima data.
 `markDuplicates.flowQIsKnownEnd`|Boolean|true|FLOW_Q_IS_KNOWN_END: treat a soft-clipped read end terminating in a quality of 0 as a known end.
@@ -94,10 +98,6 @@ Parameter|Value|Default|Description
 `collectReadLengthDistribution.cores`|Int|4|Threads for samtools (-@).
 `collectReadLengthDistribution.timeout`|Int|24|Hours before task timeout.
 `collectReadLengthDistribution.modules`|String|"samtools/1.16.1"|Environment modules to load (samtools).
-`checkPreValidation.jobMemory`|Int|4|Memory (GB) for the job.
-`checkPreValidation.cores`|Int|1|Cores to allocate.
-`checkPreValidation.timeout`|Int|2|Hours before task timeout.
-`checkPreValidation.modules`|String|""|Environment modules to load (none; uses system python3).
 
 
 ### Outputs
@@ -107,7 +107,6 @@ Output | Type | Description | Labels
 `mergedCram`|File|Merged, duplicate-marked, coordinate-sorted CRAM.|vidarr_label: mergedCram
 `mergedCramIndex`|File|Index (.crai) for the merged CRAM.|vidarr_label: mergedCramIndex
 `duplicateMetrics`|File|Aggregate duplicate metrics (PERCENT_DUPLICATION) over the merged CRAM.|vidarr_label: duplicateMetrics
-`perIntervalDuplicateMetrics`|Array[File]|Per-interval MarkDuplicates metrics files.|vidarr_label: perIntervalDuplicateMetrics
 `wgsMetrics`|File|Picard CollectWgsMetrics (Q20/MQ20-filtered coverage).|vidarr_label: wgsMetrics
 `rawWgsMetrics`|File|Picard CollectRawWgsMetrics (unfiltered coverage).|vidarr_label: rawWgsMetrics
 `alignmentSummaryMetrics`|File|CollectAlignmentSummaryMetrics, including PCT_ADAPTER and PCT_CHIMERAS.|vidarr_label: alignmentSummaryMetrics
@@ -116,9 +115,6 @@ Output | Type | Description | Labels
 `qualityDistributionMetrics`|File|QualityScoreDistribution metrics.|vidarr_label: qualityDistributionMetrics
 `readLengthDistribution`|File|Read length distribution (RL section of samtools stats); Ultima fragment-size proxy.|vidarr_label: readLengthDistribution
 `samtoolsStats`|File|Full samtools stats output for the merged CRAM.|vidarr_label: samtoolsStats
-`duplicationRate`|Float|PERCENT_DUPLICATION parsed from the duplicate metrics.|vidarr_label: duplicationRate
-`chimerismRate`|Float|PCT_CHIMERAS parsed from the alignment summary metrics.|vidarr_label: chimerismRate
-`isOutlierData`|Boolean|True if duplication or chimerism exceed the configured thresholds.|vidarr_label: isOutlierData
 
 
 ## Commands
@@ -191,19 +187,19 @@ This section lists command(s) run by ultimaMergeQC workflow
     set -euo pipefail
     # Ultima-recommended flow-based (single-end) duplicate marking.
     gatk --java-options "-Xmx~{allocatedMemory - overhead}G" MarkDuplicates \
-      ~{sep=" " prefix("--INPUT=", inputCrams)} \
-      --OUTPUT="~{outputFileNamePrefix}.cram" \
-      --METRICS_FILE="~{outputFileNamePrefix}.metrics" \
-      --REFERENCE_SEQUENCE="~{refFasta}" \
+      --INPUT "~{inputCram}" \
+      --OUTPUT "~{outputFileNamePrefix}.cram" \
+      --METRICS_FILE "~{outputFileNamePrefix}.metrics" \
+      --REFERENCE_SEQUENCE ~{refFasta} \
       --FLOW_MODE ~{flowMode} \
       --FLOW_Q_IS_KNOWN_END ~{flowQIsKnownEnd} \
       --FLOW_USE_UNPAIRED_CLIPPED_END ~{flowUseUnpairedClippedEnd} \
       --FLOW_USE_END_IN_UNPAIRED_READS ~{flowUseEndInUnpairedReads} \
       --FLOW_UNPAIRED_START_UNCERTAINTY ~{flowUnpairedStartUncertainty} \
       --FLOW_UNPAIRED_END_UNCERTAINTY ~{flowUnpairedEndUncertainty} \
-      --REMOVE_DUPLICATES=~{removeDuplicates} \
-      --CREATE_INDEX=false \
-      --VALIDATION_STRINGENCY=SILENT \
+      --REMOVE_DUPLICATES ~{removeDuplicates} \
+      --CREATE_INDEX false \
+      --VALIDATION_STRINGENCY SILENT \
       ~{markDuplicatesAdditionalParams}
 ```
 ```
@@ -281,27 +277,6 @@ This section lists command(s) run by ultimaMergeQC workflow
     samtools stats -@ ~{cores} --reference ~{refFasta} input.cram > "~{outputFileNamePrefix}.samtools_stats.txt"
     # RL = read-length distribution; Ultima fragment-size proxy (GBS-7031).
     grep '^RL' "~{outputFileNamePrefix}.samtools_stats.txt" > "~{outputFileNamePrefix}.read_length_distribution.txt" || true
-```
-```
-    set -euo pipefail
-
-    grep -A 1 PERCENT_DUPLICATION ~{duplicationMetrics} > duplication.csv
-    grep -A 3 PCT_CHIMERAS ~{chimerismMetrics} | grep -v OF_PAIR > chimerism.csv
-
-    python3 <<CODE
-    import csv
-    with open('duplication.csv') as dupfile:
-        reader = csv.DictReader(dupfile, delimiter='\t')
-        for row in reader:
-            with open("duplication_value.txt", "w") as f:
-                f.write(row['PERCENT_DUPLICATION'])
-
-    with open('chimerism.csv') as chimfile:
-        reader = csv.DictReader(chimfile, delimiter='\t')
-        for row in reader:
-            with open("chimerism_value.txt", "w") as f:
-                f.write(row['PCT_CHIMERAS'])
-    CODE
 ```
 ## Support
 

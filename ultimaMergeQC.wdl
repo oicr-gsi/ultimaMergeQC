@@ -40,6 +40,7 @@ workflow ultimaMergeQC {
     String intervalsToParallelizeByString = "chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY,chrM,OTHER"
     Float maxDuplication = 0.30
     Float maxChimerism = 0.15
+    String outputDirectory
   }
 
   parameter_meta {
@@ -50,6 +51,7 @@ workflow ultimaMergeQC {
     intervalsToParallelizeByString: "Comma-separated partitions to scatter by. OTHER collects all non-standard contigs plus unmapped reads."
     maxDuplication: "Duplication rate above which the sample is flagged as an outlier."
     maxChimerism: "Chimerism rate (PCT_CHIMERAS) above which the sample is flagged as an outlier."
+    outputDirectory: "Absolute path (on a filesystem visible from the compute nodes, e.g. /scratch/.../output) to copy the final workflow outputs into. Used as a substitute for Cromwell's final_workflow_outputs_dir."
   }
 
   Map[String, GenomeResources] resources = {
@@ -167,6 +169,27 @@ workflow ultimaMergeQC {
       inputCramIndex = mergeCrams.mergedCramIndex,
       refFasta = rr.refFasta,
       referenceModule = rr.genomeModule,
+      outputFileNamePrefix = outputFileNamePrefix
+  }
+
+  Array[File] finalOutputs = [
+    mergeCrams.mergedCram,
+    mergeCrams.mergedCramIndex,
+    collectDuplicateMetrics.metrics,
+    collectWgsMetrics.metrics,
+    collectRawWgsMetrics.metrics,
+    collectAggregationMetrics.alignmentSummaryMetrics,
+    collectAggregationMetrics.gcBiasSummaryMetrics,
+    collectAggregationMetrics.gcBiasDetailMetrics,
+    collectAggregationMetrics.qualityDistributionMetrics,
+    collectReadLengthDistribution.readLengthDistribution,
+    collectReadLengthDistribution.samtoolsStats
+  ]
+
+  call copyOutputs {
+    input:
+      files = finalOutputs,
+      outputDirectory = outputDirectory,
       outputFileNamePrefix = outputFileNamePrefix
   }
 
@@ -408,7 +431,7 @@ task markDuplicates {
   command <<<
     set -euo pipefail
     # Ultima-recommended flow-based (single-end) duplicate marking.
-    java -Xmx~{allocatedMemory - overhead}G -jar $PICARD_ROOT/picard.jar MarkDuplicates \
+    java -Xmx~{allocatedMemory - overhead}G -jar $PICARD_ROOT/bin/picard.jar MarkDuplicates \
       --INPUT "~{inputCram}" \
       --OUTPUT "~{outputFileNamePrefix}.cram" \
       --METRICS_FILE "~{outputFileNamePrefix}.metrics" \
@@ -764,5 +787,53 @@ task collectReadLengthDistribution {
   output {
     File samtoolsStats = "~{outputFileNamePrefix}.samtools_stats.txt"
     File readLengthDistribution = "~{outputFileNamePrefix}.read_length_distribution.txt"
+  }
+}
+
+task copyOutputs {
+  input {
+    Array[File] files
+    String outputDirectory
+    String outputFileNamePrefix
+    Int jobMemory = 4
+    Int timeout = 4
+  }
+
+  parameter_meta {
+    files: "Final workflow output files to copy into outputDirectory."
+    outputDirectory: "Absolute destination directory on a filesystem visible from the compute nodes. Created if it does not exist."
+    outputFileNamePrefix: "Output prefix, used to name the copy manifest."
+    jobMemory: "Memory (in GB) to allocate to the job."
+    timeout: "Maximum amount of time (in hours) the task can run for."
+  }
+
+  command <<<
+    set -euo pipefail
+
+    dest="~{outputDirectory}"
+    mkdir -p "${dest}"
+
+    manifest="~{outputFileNamePrefix}_copied_outputs.txt"
+    : > "${manifest}"
+
+    for f in ~{sep=' ' files}; do
+      cp -f "${f}" "${dest}/"
+      echo "${dest}/$(basename "${f}")" >> "${manifest}"
+    done
+  >>>
+
+  runtime {
+    memory: "~{jobMemory} GB"
+    timeout: "~{timeout}"
+  }
+
+  output {
+    File copyManifest = "~{outputFileNamePrefix}_copied_outputs.txt"
+  }
+
+  meta {
+    output_meta: {
+      copyManifest: "List of the destination paths the final outputs were copied to."
+    }
   }
 }

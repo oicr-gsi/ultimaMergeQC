@@ -378,7 +378,7 @@ task markDuplicates {
     Int overhead = 4
     Int cores = 1
     Int timeout = 48
-    String modules = "gatk/4.6.2.0"
+    String modules = "java/17 picard/3.4.0-patched-ultima"
   }
 
   parameter_meta {
@@ -400,7 +400,7 @@ task markDuplicates {
     overhead: "GB reserved for non-heap JVM overhead."
     cores: "Cores to allocate."
     timeout: "Hours before task timeout."
-    modules: "Tool environment modules to load (gatk)."
+    modules: "Tool environment modules to load (picard)."
   }
 
   Int allocatedMemory = if minMemory > round(jobMemory * scaleCoefficient) then minMemory else round(jobMemory * scaleCoefficient)
@@ -408,7 +408,7 @@ task markDuplicates {
   command <<<
     set -euo pipefail
     # Ultima-recommended flow-based (single-end) duplicate marking.
-    gatk --java-options "-Xmx~{allocatedMemory - overhead}G" MarkDuplicates \
+    java -Xmx~{allocatedMemory - overhead}G -jar $PICARD_ROOT/picard.jar MarkDuplicates \
       --INPUT "~{inputCram}" \
       --OUTPUT "~{outputFileNamePrefix}.cram" \
       --METRICS_FILE "~{outputFileNamePrefix}.metrics" \

@@ -35,6 +35,7 @@ Parameter|Value|Default|Description
 `intervalsToParallelizeByString`|String|"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY,chrM,OTHER"|Comma-separated partitions to scatter by. OTHER collects all non-standard contigs plus unmapped reads.
 `maxDuplication`|Float|0.3|Duplication rate above which the sample is flagged as an outlier.
 `maxChimerism`|Float|0.15|Chimerism rate (PCT_CHIMERAS) above which the sample is flagged as an outlier.
+`outputDirectory`|String?|None|Absolute path (on a filesystem visible from the compute nodes, e.g. /scratch/.../output) to copy the final workflow outputs into. Used as a substitute for Cromwell's final_workflow_outputs_dir.
 
 
 #### Optional task parameters:
@@ -67,7 +68,7 @@ Parameter|Value|Default|Description
 `markDuplicates.overhead`|Int|4|GB reserved for non-heap JVM overhead.
 `markDuplicates.cores`|Int|1|Cores to allocate.
 `markDuplicates.timeout`|Int|48|Hours before task timeout.
-`markDuplicates.modules`|String|"gatk/4.6.2.0"|Tool environment modules to load (gatk).
+`markDuplicates.modules`|String|"java/17 picard/3.4.0-patched-ultima"|Tool environment modules to load (picard).
 `mergeCrams.jobMemory`|Int|16|Memory (GB) allocated to this job.
 `mergeCrams.cores`|Int|8|Threads for samtools (-@).
 `mergeCrams.timeout`|Int|24|Hours before task timeout.
@@ -98,6 +99,8 @@ Parameter|Value|Default|Description
 `collectReadLengthDistribution.cores`|Int|4|Threads for samtools (-@).
 `collectReadLengthDistribution.timeout`|Int|24|Hours before task timeout.
 `collectReadLengthDistribution.modules`|String|"samtools/1.16.1"|Environment modules to load (samtools).
+`copyOutputs.jobMemory`|Int|4|Memory (in GB) to allocate to the job.
+`copyOutputs.timeout`|Int|4|Maximum amount of time (in hours) the task can run for.
 
 
 ### Outputs
@@ -115,6 +118,7 @@ Output | Type | Description | Labels
 `qualityDistributionMetrics`|File|QualityScoreDistribution metrics.|vidarr_label: qualityDistributionMetrics
 `readLengthDistribution`|File|Read length distribution (RL section of samtools stats); Ultima fragment-size proxy.|vidarr_label: readLengthDistribution
 `samtoolsStats`|File|Full samtools stats output for the merged CRAM.|vidarr_label: samtoolsStats
+`copiedOutputsManifest`|File?|List of the destination paths the final outputs were copied to.|
 
 
 ## Commands
@@ -186,7 +190,7 @@ This section lists command(s) run by ultimaMergeQC workflow
 ```
     set -euo pipefail
     # Ultima-recommended flow-based (single-end) duplicate marking.
-    gatk --java-options "-Xmx~{allocatedMemory - overhead}G" MarkDuplicates \
+    java -Xmx~{allocatedMemory - overhead}G -jar $PICARD_ROOT/bin/picard.jar MarkDuplicates \
       --INPUT "~{inputCram}" \
       --OUTPUT "~{outputFileNamePrefix}.cram" \
       --METRICS_FILE "~{outputFileNamePrefix}.metrics" \
@@ -277,6 +281,20 @@ This section lists command(s) run by ultimaMergeQC workflow
     samtools stats -@ ~{cores} --reference ~{refFasta} input.cram > "~{outputFileNamePrefix}.samtools_stats.txt"
     # RL = read-length distribution; Ultima fragment-size proxy (GBS-7031).
     grep '^RL' "~{outputFileNamePrefix}.samtools_stats.txt" > "~{outputFileNamePrefix}.read_length_distribution.txt" || true
+```
+```
+    set -euo pipefail
+
+    dest="~{outputDirectory}"
+    mkdir -p "${dest}"
+
+    manifest="~{outputFileNamePrefix}_copied_outputs.txt"
+    : > "${manifest}"
+
+    for f in ~{sep=' ' files}; do
+      cp -f "${f}" "${dest}/"
+      echo "${dest}/$(basename "${f}")" >> "${manifest}"
+    done
 ```
 ## Support
 

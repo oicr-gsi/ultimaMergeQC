@@ -67,7 +67,7 @@ This section lists command(s) run by ultimaMergeQC workflow
 ```
     set -euo pipefail
     # Ultima-recommended flow-based (single-end) duplicate marking.
-    gatk --java-options "-Xmx~{allocatedMemory - overhead}G" MarkDuplicates \
+    java -Xmx~{allocatedMemory - overhead}G -jar $PICARD_ROOT/bin/picard.jar MarkDuplicates \
       --INPUT "~{inputCram}" \
       --OUTPUT "~{outputFileNamePrefix}.cram" \
       --METRICS_FILE "~{outputFileNamePrefix}.metrics" \
@@ -158,4 +158,18 @@ This section lists command(s) run by ultimaMergeQC workflow
     samtools stats -@ ~{cores} --reference ~{refFasta} input.cram > "~{outputFileNamePrefix}.samtools_stats.txt"
     # RL = read-length distribution; Ultima fragment-size proxy (GBS-7031).
     grep '^RL' "~{outputFileNamePrefix}.samtools_stats.txt" > "~{outputFileNamePrefix}.read_length_distribution.txt" || true
+```
+```
+    set -euo pipefail
+
+    dest="~{outputDirectory}"
+    mkdir -p "${dest}"
+
+    manifest="~{outputFileNamePrefix}_copied_outputs.txt"
+    : > "${manifest}"
+
+    for f in ~{sep=' ' files}; do
+      cp -f "${f}" "${dest}/"
+      echo "${dest}/$(basename "${f}")" >> "${manifest}"
+    done
 ```

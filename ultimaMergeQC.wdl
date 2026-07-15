@@ -40,7 +40,7 @@ workflow ultimaMergeQC {
     String intervalsToParallelizeByString = "chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY,chrM,OTHER"
     Float maxDuplication = 0.30
     Float maxChimerism = 0.15
-    String outputDirectory
+    String? outputDirectory
   }
 
   parameter_meta {
@@ -186,11 +186,13 @@ workflow ultimaMergeQC {
     collectReadLengthDistribution.samtoolsStats
   ]
 
-  call copyOutputs {
-    input:
-      files = finalOutputs,
-      outputDirectory = outputDirectory,
-      outputFileNamePrefix = outputFileNamePrefix
+  if (defined(outputDirectory)) {
+    call copyOutputs {
+      input:
+        files = finalOutputs,
+        outputDirectory = outputDirectory,
+        outputFileNamePrefix = outputFileNamePrefix
+    }
   }
 
 
@@ -206,6 +208,7 @@ workflow ultimaMergeQC {
     File qualityDistributionMetrics = collectAggregationMetrics.qualityDistributionMetrics
     File readLengthDistribution = collectReadLengthDistribution.readLengthDistribution
     File samtoolsStats = collectReadLengthDistribution.samtoolsStats
+    File? copiedOutputsManifest = copyOutputs.copyManifest
   }
 
   meta {
@@ -793,7 +796,7 @@ task collectReadLengthDistribution {
 task copyOutputs {
   input {
     Array[File] files
-    String outputDirectory
+    String? outputDirectory
     String outputFileNamePrefix
     Int jobMemory = 4
     Int timeout = 4

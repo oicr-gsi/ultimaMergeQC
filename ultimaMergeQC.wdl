@@ -430,14 +430,21 @@ task markDuplicates {
   }
 
   Int allocatedMemory = if minMemory > round(jobMemory * scaleCoefficient) then minMemory else round(jobMemory * scaleCoefficient)
+  Float inputSize = size(inputCram, "GB")
+  Float outputSize = inputSize * 1.1
+  Int diskSize = ceil(inputSize + outputSize) + 1
 
   command <<<
     set -euo pipefail
+
+    # localize the files into local temp storage
+    cp -L ~{inputCram} ${TMPDIR}
+
     # Ultima-recommended flow-based (single-end) duplicate marking.
     java -Xmx~{allocatedMemory - overhead}G -jar $PICARD_ROOT/bin/picard.jar MarkDuplicates \
-      --INPUT "~{inputCram}" \
-      --OUTPUT "~{outputFileNamePrefix}.cram" \
-      --METRICS_FILE "~{outputFileNamePrefix}.metrics" \
+      --INPUT "${TMPDIR}/~{basename(inputCram)}" \
+      --OUTPUT "${TMPDIR}/~{outputFileNamePrefix}.cram" \
+      --METRICS_FILE "${TMPDIR}/~{outputFileNamePrefix}.metrics" \
       --REFERENCE_SEQUENCE ~{refFasta} \
       --FLOW_MODE ~{flowMode} \
       --FLOW_Q_IS_KNOWN_END ~{flowQIsKnownEnd} \
@@ -449,6 +456,11 @@ task markDuplicates {
       --CREATE_INDEX false \
       --VALIDATION_STRINGENCY SILENT \
       ~{markDuplicatesAdditionalParams}
+        
+    # copy the files out of local temp storage into the cromwell working directory
+    cp "${TMPDIR}/~{outputFileNamePrefix}.cram" .
+    cp "${TMPDIR}/~{outputFileNamePrefix}.metrics" .
+
   >>>
 
   runtime {
@@ -456,6 +468,7 @@ task markDuplicates {
     cpu: "~{cores}"
     timeout: "~{timeout}"
     modules: "~{modules} ~{referenceModule}"
+    disk: "~{diskSize} GB"
   }
 
   output {
@@ -488,10 +501,22 @@ task mergeCrams {
     modules: "Tool environment modules to load (samtools)."
   }
 
+  Float inputSize = size(inputCrams, "GB")
+  Float outputSize = inputSize * 1.05
+  Int diskSize = ceil(inputSize + outputSize) + 1
+
   command <<<
     set -euo pipefail
-    samtools merge -@ ~{cores} --reference ~{refFasta} -O cram -o "~{outputFileNamePrefix}.cram" ~{sep=" " inputCrams}
-    samtools index "~{outputFileNamePrefix}.cram"
+
+    for f in ~{sep=" " inputCrams}; do
+      cp -L "$f" ${TMPDIR}
+    done
+
+    samtools merge -@ ~{cores} --reference ~{refFasta} -O cram -o "${TMPDIR}/~{outputFileNamePrefix}.cram" ${TMPDIR}/*.cram
+    samtools index "${TMPDIR}/~{outputFileNamePrefix}.cram"
+
+    cp "${TMPDIR}/~{outputFileNamePrefix}.cram" .
+    cp "${TMPDIR}/~{outputFileNamePrefix}.cram.crai" .
   >>>
 
   runtime {
@@ -499,6 +524,7 @@ task mergeCrams {
     cpu: "~{cores}"
     timeout: "~{timeout}"
     modules: "~{modules} ~{referenceModule}"
+    disk: "~{diskSize} GB"
   }
 
   output {
@@ -534,13 +560,16 @@ task collectDuplicateMetrics {
     modules: "Environment modules to load (gatk)."
   }
 
+  Float inputSize = size(inputCram, "GB") + size(inputCramIndex, "GB")
+  Int diskSize = ceil(inputSize * 1.1) + 1
+
   command <<<
     set -euo pipefail
-    ln -s ~{inputCram} input.cram
-    ln -s ~{inputCramIndex} input.cram.crai
+    cp -L ~{inputCram} ${TMPDIR}/input.cram
+    cp -L ~{inputCramIndex} ${TMPDIR}/input.cram.crai
 
     gatk --java-options "-Xmx~{jobMemory - overhead}G" CollectDuplicateMetrics \
-      --INPUT input.cram \
+      --INPUT ${TMPDIR}/input.cram \
       --REFERENCE_SEQUENCE ~{refFasta} \
       --METRICS_FILE "~{outputFileNamePrefix}.duplicate_metrics"
   >>>
@@ -550,6 +579,7 @@ task collectDuplicateMetrics {
     cpu: "~{cores}"
     timeout: "~{timeout}"
     modules: "~{modules} ~{referenceModule}"
+    disk: "~{diskSize} GB"
   }
 
   output {
@@ -588,13 +618,16 @@ task collectWgsMetrics {
     modules: "Environment modules to load (gatk)."
   }
 
+  Float inputSize = size(inputCram, "GB") + size(inputCramIndex, "GB")
+  Int diskSize = ceil(inputSize * 1.1) + 1
+
   command <<<
     set -euo pipefail
-    ln -s ~{inputCram} input.cram
-    ln -s ~{inputCramIndex} input.cram.crai
+    cp -L ~{inputCram} ${TMPDIR}/input.cram
+    cp -L ~{inputCramIndex} ${TMPDIR}/input.cram.crai
 
     gatk --java-options "-Xmx~{jobMemory - overhead}G" CollectWgsMetrics \
-      --INPUT input.cram \
+      --INPUT ${TMPDIR}/input.cram \
       --REFERENCE_SEQUENCE ~{refFasta} \
       --OUTPUT "~{outputFileNamePrefix}.wgs_metrics.txt" \
       --INTERVALS ~{wgsIntervalList} \
@@ -611,6 +644,7 @@ task collectWgsMetrics {
     cpu: "~{cores}"
     timeout: "~{timeout}"
     modules: "~{modules} ~{referenceModule}"
+    disk: "~{diskSize} GB"
   }
 
   output {
@@ -649,13 +683,16 @@ task collectRawWgsMetrics {
     modules: "Environment modules to load (gatk)."
   }
 
+  Float inputSize = size(inputCram, "GB") + size(inputCramIndex, "GB")
+  Int diskSize = ceil(inputSize * 1.1) + 1
+
   command <<<
     set -euo pipefail
-    ln -s ~{inputCram} input.cram
-    ln -s ~{inputCramIndex} input.cram.crai
+    cp -L ~{inputCram} ${TMPDIR}/input.cram
+    cp -L ~{inputCramIndex} ${TMPDIR}/input.cram.crai
 
     gatk --java-options "-Xmx~{jobMemory - overhead}G" CollectRawWgsMetrics \
-      --INPUT input.cram \
+      --INPUT ${TMPDIR}/input.cram \
       --REFERENCE_SEQUENCE ~{refFasta} \
       --OUTPUT "~{outputFileNamePrefix}.raw_wgs_metrics.txt" \
       --INTERVALS ~{wgsIntervalList} \
@@ -672,6 +709,7 @@ task collectRawWgsMetrics {
     cpu: "~{cores}"
     timeout: "~{timeout}"
     modules: "~{modules} ~{referenceModule}"
+    disk: "~{diskSize} GB"
   }
 
   output {
@@ -711,13 +749,16 @@ task collectAggregationMetrics {
   # Only pass ADAPTER_SEQUENCE when an adapter is supplied; otherwise Picard uses its default.
   String adapterArgument = if defined(ugAdapter) then "--EXTRA_ARGUMENT \"CollectAlignmentSummaryMetrics::ADAPTER_SEQUENCE=" + select_first([ugAdapter]) + "\"" else ""
 
+  Float inputSize = size(inputCram, "GB") + size(inputCramIndex, "GB")
+  Int diskSize = ceil(inputSize * 1.1) + 1
+
   command <<<
     set -euo pipefail
-    ln -s ~{inputCram} input.cram
-    ln -s ~{inputCramIndex} input.cram.crai
+    cp -L ~{inputCram} ${TMPDIR}/input.cram
+    cp -L ~{inputCramIndex} ${TMPDIR}/input.cram.crai
 
     gatk --java-options "-Xmx~{jobMemory - overhead}G" CollectMultipleMetrics \
-      --INPUT input.cram \
+      --INPUT ${TMPDIR}/input.cram \
       --REFERENCE_SEQUENCE ~{refFasta} \
       --OUTPUT "~{outputFileNamePrefix}" \
       --ASSUME_SORTED true \
@@ -735,6 +776,7 @@ task collectAggregationMetrics {
     cpu: "~{cores}"
     timeout: "~{timeout}"
     modules: "~{modules} ~{referenceModule}"
+    disk: "~{diskSize} GB"
   }
 
   output {
@@ -770,14 +812,20 @@ task collectReadLengthDistribution {
     modules: "Environment modules to load (samtools)."
   }
 
+  Float inputSize = size(inputCram, "GB") + size(inputCramIndex, "GB")
+  Int diskSize = ceil(inputSize * 1.1) + 1
+
   command <<<
     set -euo pipefail
-    ln -s ~{inputCram} input.cram
-    ln -s ~{inputCramIndex} input.cram.crai
+    cp -L ~{inputCram} ${TMPDIR}/input.cram
+    cp -L ~{inputCramIndex} ${TMPDIR}/input.cram.crai
 
-    samtools stats -@ ~{cores} --reference ~{refFasta} input.cram > "~{outputFileNamePrefix}.samtools_stats.txt"
+    samtools stats -@ ~{cores} --reference ~{refFasta} ${TMPDIR}/input.cram > "${TMPDIR}/~{outputFileNamePrefix}.samtools_stats.txt"
     # RL = read-length distribution; Ultima fragment-size proxy (GBS-7031).
-    grep '^RL' "~{outputFileNamePrefix}.samtools_stats.txt" > "~{outputFileNamePrefix}.read_length_distribution.txt" || true
+    grep '^RL' "${TMPDIR}/~{outputFileNamePrefix}.samtools_stats.txt" > "${TMPDIR}/~{outputFileNamePrefix}.read_length_distribution.txt" || true
+
+    cp "${TMPDIR}/~{outputFileNamePrefix}.samtools_stats.txt" . 
+    cp "${TMPDIR}/~{outputFileNamePrefix}.read_length_distribution.txt" . 
   >>>
 
   runtime {
@@ -785,6 +833,7 @@ task collectReadLengthDistribution {
     cpu: "~{cores}"
     timeout: "~{timeout}"
     modules: "~{modules} ~{referenceModule}"
+    disk: "~{diskSize} GB"
   }
 
   output {

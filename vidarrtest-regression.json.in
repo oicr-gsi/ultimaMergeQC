@@ -61,6 +61,7 @@
             "ultimaMergeQC.intervalsToParallelizeByString": null,
             "ultimaMergeQC.maxDuplication": null,
             "ultimaMergeQC.maxChimerism": null,
+            "ultimaMergeQC.outputDirectory": null,
             "ultimaMergeQC.prepareIntervals.lineSeparator": null,
             "ultimaMergeQC.prepareIntervals.recordSeparator": null,
             "ultimaMergeQC.prepareIntervals.jobMemory": null,
@@ -118,7 +119,9 @@
             "ultimaMergeQC.collectReadLengthDistribution.jobMemory": null,
             "ultimaMergeQC.collectReadLengthDistribution.cores": null,
             "ultimaMergeQC.collectReadLengthDistribution.timeout": null,
-            "ultimaMergeQC.collectReadLengthDistribution.modules": null
+            "ultimaMergeQC.collectReadLengthDistribution.modules": null,
+            "ultimaMergeQC.copyOutputs.jobMemory": null,
+            "ultimaMergeQC.copyOutputs.timeout": null
         },
         "description": "ultimaMergeQC single-sample merge + duplicate-mark + QC test",
         "engineArguments": {
@@ -208,6 +211,15 @@
                 "type": "ALL"
             },
             "ultimaMergeQC.samtoolsStats": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_ultimaMergeQC_test_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            }
+        },
+        "ultimaMergeQC.copiedOutputsManifest": {
                 "contents": [
                     {
                         "outputDirectory": "@SCRATCH@/@DATE@_Workflow_ultimaMergeQC_test_@JENKINSID@"

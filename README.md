@@ -1,8 +1,8 @@
 # ultimaMergeQC
 
-Merge already-sorted Ultima CRAMs into one sample-level CRAM, mark duplicates per interval, and collect WGS QC metrics.
-
 ## Overview
+
+Merge already-sorted Ultima CRAMs into one sample-level CRAM, mark duplicates per interval, and collect WGS QC metrics.
 
 ## Dependencies
 
@@ -35,7 +35,8 @@ Parameter|Value|Default|Description
 `intervalsToParallelizeByString`|String|"chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY,chrM,OTHER"|Comma-separated partitions to scatter by. OTHER collects all non-standard contigs plus unmapped reads.
 `maxDuplication`|Float|0.3|Duplication rate above which the sample is flagged as an outlier.
 `maxChimerism`|Float|0.15|Chimerism rate (PCT_CHIMERAS) above which the sample is flagged as an outlier.
-`outputDirectory`|String?|None|Absolute path (on a filesystem visible from the compute nodes, e.g. /scratch/.../output) to copy the final workflow outputs into. Used as a substitute for Cromwell's final_workflow_outputs_dir.
+`scheduler`|String|"sge"|Scheduler the workflow runs under: sge, slurm or slurm-gcp. Only slurm-gcp copies the final outputs to outputDirectory; under the others the engine's execution directory is already on a shared filesystem, so the outputs are read from where they were written. Default sge.
+`outputDirectory`|String?|None|Absolute path, on a filesystem visible from the compute nodes, to copy the final workflow outputs into. Used as a substitute for Cromwell's final_workflow_outputs_dir. Required when scheduler is slurm-gcp, ignored otherwise.
 
 
 #### Optional task parameters:
@@ -286,6 +287,10 @@ This section lists command(s) run by ultimaMergeQC workflow
     set -euo pipefail
 
     dest="~{outputDirectory}"
+    if [[ -z "${dest}" ]]; then
+      echo "ERROR: outputDirectory is required when scheduler is slurm-gcp." >&2
+      exit 1
+    fi
     mkdir -p "${dest}"
 
     manifest="~{outputFileNamePrefix}_copied_outputs.txt"
@@ -296,6 +301,7 @@ This section lists command(s) run by ultimaMergeQC workflow
       echo "${dest}/$(basename "${f}")" >> "${manifest}"
     done
 ```
+
 ## Support
 
 For support, please file an issue on the [Github project](https://github.com/oicr-gsi) or send an email to gsi@oicr.on.ca .

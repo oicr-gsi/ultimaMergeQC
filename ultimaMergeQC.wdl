@@ -40,6 +40,7 @@ workflow ultimaMergeQC {
     String intervalsToParallelizeByString = "chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY,chrM,OTHER"
     Float maxDuplication = 0.30
     Float maxChimerism = 0.15
+    String scheduler = "sge"
     String? outputDirectory
   }
 
@@ -51,7 +52,8 @@ workflow ultimaMergeQC {
     intervalsToParallelizeByString: "Comma-separated partitions to scatter by. OTHER collects all non-standard contigs plus unmapped reads."
     maxDuplication: "Duplication rate above which the sample is flagged as an outlier."
     maxChimerism: "Chimerism rate (PCT_CHIMERAS) above which the sample is flagged as an outlier."
-    outputDirectory: "Absolute path (on a filesystem visible from the compute nodes, e.g. /scratch/.../output) to copy the final workflow outputs into. Used as a substitute for Cromwell's final_workflow_outputs_dir."
+    scheduler: "Scheduler the workflow runs under: sge, slurm or slurm-gcp. Only slurm-gcp copies the final outputs to outputDirectory; under the others the engine's execution directory is already on a shared filesystem, so the outputs are read from where they were written. Default sge."
+    outputDirectory: "Absolute path, on a filesystem visible from the compute nodes, to copy the final workflow outputs into. Used as a substitute for Cromwell's final_workflow_outputs_dir. Required when scheduler is slurm-gcp, ignored otherwise."
   }
 
   Map[String, GenomeResources] resources = {
@@ -186,7 +188,10 @@ workflow ultimaMergeQC {
     collectReadLengthDistribution.samtoolsStats
   ]
 
-  if (defined(outputDirectory)) {
+  # Step 5: copy the final outputs off the execution directory. Only needed where that
+  # directory is local to the node rather than on a shared filesystem, so it is gated on
+  # the scheduler rather than run everywhere.
+  if (scheduler == "slurm-gcp") {
     call copyOutputs {
       input:
         files = finalOutputs,
@@ -804,7 +809,7 @@ task copyOutputs {
 
   parameter_meta {
     files: "Final workflow output files to copy into outputDirectory."
-    outputDirectory: "Absolute destination directory on a filesystem visible from the compute nodes. Created if it does not exist."
+    outputDirectory: "Absolute destination directory on a filesystem visible from the compute nodes. Created if it does not exist. The task fails if it is not set."
     outputFileNamePrefix: "Output prefix, used to name the copy manifest."
     jobMemory: "Memory (in GB) to allocate to the job."
     timeout: "Maximum amount of time (in hours) the task can run for."
@@ -814,6 +819,10 @@ task copyOutputs {
     set -euo pipefail
 
     dest="~{outputDirectory}"
+    if [[ -z "${dest}" ]]; then
+      echo "ERROR: outputDirectory is required when scheduler is slurm-gcp." >&2
+      exit 1
+    fi
     mkdir -p "${dest}"
 
     manifest="~{outputFileNamePrefix}_copied_outputs.txt"

@@ -163,6 +163,10 @@ This section lists command(s) run by ultimaMergeQC workflow
     set -euo pipefail
 
     dest="~{outputDirectory}"
+    if [[ -z "${dest}" ]]; then
+      echo "ERROR: outputDirectory is required when scheduler is slurm-gcp." >&2
+      exit 1
+    fi
     mkdir -p "${dest}"
 
     manifest="~{outputFileNamePrefix}_copied_outputs.txt"

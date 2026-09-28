@@ -218,6 +218,14 @@
                     }
                 ],
                 "type": "ALL"
+            },
+            "ultimaMergeQC.copiedOutputsManifest": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_ultimaMergeQC_test_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
             }
         },
         "validators": [

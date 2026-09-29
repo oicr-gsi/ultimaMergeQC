@@ -74,9 +74,10 @@ This section lists command(s) run by ultimaMergeQC workflow
       --REFERENCE_SEQUENCE ~{refFasta} \
       --FLOW_MODE ~{flowMode} \
       --FLOW_Q_IS_KNOWN_END ~{flowQIsKnownEnd} \
-      --USE_UNPAIRED_CLIPPED_END ~{flowUseUnpairedClippedEnd} \
-      --USE_END_IN_UNPAIRED_READS ~{flowUseEndInUnpairedReads} \
-      --UNPAIRED_END_UNCERTAINTY ~{flowUnpairedEndUncertainty} \
+      --FLOW_USE_UNPAIRED_CLIPPED_END ~{flowUseUnpairedClippedEnd} \
+      --FLOW_USE_END_IN_UNPAIRED_READS ~{flowUseEndInUnpairedReads} \
+      --FLOW_UNPAIRED_START_UNCERTAINTY ~{flowUnpairedStartUncertainty} \
+      --FLOW_UNPAIRED_END_UNCERTAINTY ~{flowUnpairedEndUncertainty} \
       --REMOVE_DUPLICATES ~{removeDuplicates} \
       --CREATE_INDEX false \
       --VALIDATION_STRINGENCY SILENT \

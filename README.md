@@ -59,10 +59,9 @@ Parameter|Value|Default|Description
 `markDuplicates.removeDuplicates`|Boolean|false|If true, drop duplicates instead of flagging them.
 `markDuplicates.flowMode`|Boolean|true|Ultima flow-based duplicate marking (single-end flow reads). Should stay true for Ultima data.
 `markDuplicates.flowQIsKnownEnd`|Boolean|true|FLOW_Q_IS_KNOWN_END: treat a soft-clipped read end terminating in a quality of 0 as a known end.
-`markDuplicates.flowUseUnpairedClippedEnd`|Boolean|true|FLOW_USE_UNPAIRED_CLIPPED_END: use the clipped, rather than aligned, end when locating unpaired reads.
-`markDuplicates.flowUseEndInUnpairedReads`|Boolean|true|FLOW_USE_END_IN_UNPAIRED_READS: use the read end (not just start) position when keying unpaired reads.
-`markDuplicates.flowUnpairedStartUncertainty`|Int|1|FLOW_UNPAIRED_START_UNCERTAINTY: positional slack (bp) allowed at the start of unpaired reads.
-`markDuplicates.flowUnpairedEndUncertainty`|Int|0|FLOW_UNPAIRED_END_UNCERTAINTY: positional slack (bp) allowed at the end of unpaired reads.
+`markDuplicates.flowUseUnpairedClippedEnd`|Boolean|true|USE_UNPAIRED_CLIPPED_END: use the clipped, rather than unclipped, end position when keying unpaired reads.
+`markDuplicates.flowUseEndInUnpairedReads`|Boolean|true|USE_END_IN_UNPAIRED_READS: make the 3' end position significant, in addition to the start, when keying unpaired reads.
+`markDuplicates.flowUnpairedEndUncertainty`|Int|0|UNPAIRED_END_UNCERTAINTY: positional slack (bp) allowed at the 3' end of unpaired reads, for sequencing error in the end position.
 `markDuplicates.markDuplicatesAdditionalParams`|String?|None|Extra arguments passed to MarkDuplicates.
 `markDuplicates.jobMemory`|Int|300|Genome-wide RAM budget (GB); per-partition RAM = round(jobMemory * scaleCoefficient), floored at minMemory.
 `markDuplicates.minMemory`|Int|8|Minimum RAM (GB) for any partition.
@@ -198,10 +197,9 @@ This section lists command(s) run by ultimaMergeQC workflow
       --REFERENCE_SEQUENCE ~{refFasta} \
       --FLOW_MODE ~{flowMode} \
       --FLOW_Q_IS_KNOWN_END ~{flowQIsKnownEnd} \
-      --FLOW_USE_UNPAIRED_CLIPPED_END ~{flowUseUnpairedClippedEnd} \
-      --FLOW_USE_END_IN_UNPAIRED_READS ~{flowUseEndInUnpairedReads} \
-      --FLOW_UNPAIRED_START_UNCERTAINTY ~{flowUnpairedStartUncertainty} \
-      --FLOW_UNPAIRED_END_UNCERTAINTY ~{flowUnpairedEndUncertainty} \
+      --USE_UNPAIRED_CLIPPED_END ~{flowUseUnpairedClippedEnd} \
+      --USE_END_IN_UNPAIRED_READS ~{flowUseEndInUnpairedReads} \
+      --UNPAIRED_END_UNCERTAINTY ~{flowUnpairedEndUncertainty} \
       --REMOVE_DUPLICATES ~{removeDuplicates} \
       --CREATE_INDEX false \
       --VALIDATION_STRINGENCY SILENT \

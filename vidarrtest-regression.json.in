@@ -18,10 +18,9 @@
             "ultimaMergeQC.maxDuplication": null,
             "ultimaMergeQC.collectAggregationMetrics.cores": null,
             "ultimaMergeQC.prepareIntervals.jobMemory": null,
+            "ultimaMergeQC.collectWgsMetrics.cores": null,
             "ultimaMergeQC.collectAggregationMetrics.jobMemory": null,
             "ultimaMergeQC.collectRawWgsMetrics.modules": null,
-            "ultimaMergeQC.collectWgsMetrics.cores": null,
-            "ultimaMergeQC.markDuplicates.flowUnpairedStartUncertainty": null,
             "ultimaMergeQC.subsetByInterval.jobMemory": null,
             "ultimaMergeQC.prepareIntervals.lineSeparator": null,
             "ultimaMergeQC.inputCrams": [

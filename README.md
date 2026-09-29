@@ -63,13 +63,13 @@ Parameter|Value|Default|Description
 `markDuplicates.flowUseEndInUnpairedReads`|Boolean|true|FLOW_USE_END_IN_UNPAIRED_READS: use the read end (not just start) position when keying unpaired reads.
 `markDuplicates.flowUnpairedStartUncertainty`|Int|1|FLOW_UNPAIRED_START_UNCERTAINTY: positional slack (bp) allowed at the start of unpaired reads.
 `markDuplicates.flowUnpairedEndUncertainty`|Int|0|FLOW_UNPAIRED_END_UNCERTAINTY: positional slack (bp) allowed at the end of unpaired reads.
-`markDuplicates.markDuplicatesAdditionalParams`|String?|None|Extra arguments passed to GATK MarkDuplicates.
+`markDuplicates.markDuplicatesAdditionalParams`|String?|None|Extra arguments passed to MarkDuplicates.
 `markDuplicates.jobMemory`|Int|300|Genome-wide RAM budget (GB); per-partition RAM = round(jobMemory * scaleCoefficient), floored at minMemory.
 `markDuplicates.minMemory`|Int|8|Minimum RAM (GB) for any partition.
 `markDuplicates.overhead`|Int|4|GB reserved for non-heap JVM overhead.
 `markDuplicates.cores`|Int|1|Cores to allocate.
 `markDuplicates.timeout`|Int|48|Hours before task timeout.
-`markDuplicates.modules`|String|"java/17 picard/3.4.0-patched-ultima"|Tool environment modules to load (picard).
+`markDuplicates.modules`|String|"java/17 picard/3.1.0"|Tool environment modules to load (picard).
 `mergeCrams.jobMemory`|Int|16|Memory (GB) allocated to this job.
 `mergeCrams.cores`|Int|8|Threads for samtools (-@).
 `mergeCrams.timeout`|Int|24|Hours before task timeout.
@@ -191,7 +191,7 @@ This section lists command(s) run by ultimaMergeQC workflow
 ```
     set -euo pipefail
     # Ultima-recommended flow-based (single-end) duplicate marking.
-    java -Xmx~{allocatedMemory - overhead}G -jar $PICARD_ROOT/bin/picard.jar MarkDuplicates \
+    java -Xmx~{allocatedMemory - overhead}G -jar $PICARD_ROOT/picard.jar MarkDuplicates \
       --INPUT "~{inputCram}" \
       --OUTPUT "~{outputFileNamePrefix}.cram" \
       --METRICS_FILE "~{outputFileNamePrefix}.metrics" \

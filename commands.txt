@@ -67,7 +67,7 @@ This section lists command(s) run by ultimaMergeQC workflow
 ```
     set -euo pipefail
     # Ultima-recommended flow-based (single-end) duplicate marking.
-    java -Xmx~{allocatedMemory - overhead}G -jar $PICARD_ROOT/bin/picard.jar MarkDuplicates \
+    java -Xmx~{allocatedMemory - overhead}G -jar $PICARD_ROOT/picard.jar MarkDuplicates \
       --INPUT "~{inputCram}" \
       --OUTPUT "~{outputFileNamePrefix}.cram" \
       --METRICS_FILE "~{outputFileNamePrefix}.metrics" \
